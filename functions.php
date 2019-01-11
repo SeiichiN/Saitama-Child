@@ -105,7 +105,7 @@ class NukayamaTopWidget extends WP_Widget {
         <textarea class="widefat"
                id="<?php echo $this->get_field_id('body'); ?>"
                name="<?php echo  $this->get_field_name('body'); ?>"
-               value="<?php echo esc_attr($instance['body']); ?>"></textarea>
+               ><?php echo esc_attr($instance['body']); ?></textarea>
     </p>
 <?php
 
