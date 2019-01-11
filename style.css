@@ -1,0 +1,23 @@
+/*
+ Theme Name: Saitama Child
+ Description:  Saitama Child Theme
+ Author:       Seiichi Nukayama
+ Template:     saitama
+ Version:      1.0.0
+ License:      GNU General Public License v2 or later
+ License URI:  http://www.gnu.org/licenses/gpl-2.0.html
+ Text Domain:  saitama-child
+ */
+
+.nukayama-top-area {
+	border: solid 1px #aaa;
+	padding: 5px;
+}
+.nukayama-top-area h2 {
+	font-size: 36px;
+	color: red;
+	margin-bottom: 20px;
+}
+.nukayama-top-area .moji {
+	border-bottom: solid 1px gray;
+}
