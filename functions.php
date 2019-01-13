@@ -1,10 +1,47 @@
 <?php
-add_action('wp_enqueue_scripts', 'theme_enqueue_styles');
-function theme_enqueue_styles() {
-  wp_enqueue_style('parent-style', get_template_directory_uri() . '/style.css');
-  wp_enqueue_style('child-style', get_stylesheet_directory_uri() . '/style.css', array('parent-style'));
+function theme_enqueue_files() {
+    wp_enqueue_style('parent-style', get_template_directory_uri() . '/style.css');
+    wp_enqueue_style('child-style', get_stylesheet_directory_uri() . '/style.css', array('parent-style'));
 }
+add_action('wp_enqueue_scripts', 'theme_enqueue_files');
 
+function widget_custom_script() { ?>
+    <script type="text/javascript">
+     jQuery(document).ready(function($) {
+         var custom_uploader;
+
+         jQuery('.media_btn').click(function(e) {
+             e.preventDefault();
+             if (custom_uploader) {
+                 custom_uploader.open();
+                 return;
+             }
+             custom_uploader = wp.media({
+                 title: '画像を選択してください',
+                 library: { type: 'image' },
+                 button: { text: '画像の選択' },
+                 multiple: false,
+             });
+             custom_uploader.on('select', function() {
+                 var images = custom_uploader.state().get('selection');
+                 images.each (function (file) {
+                     jQuery(".widget-image").val("");
+                     jQuery("#img-thumbnail").empty();
+                     
+                     jQuery(".widget-image").val(file.attributes.sizes.full.url);
+                     jQuery("#img-thumbnail").append('<img src="'
+                                              + file.attributes.sizes.thumbnail.url
+                                              + '">');
+                     // $("#img-thumbnail").attr('value', file.toJSON().url);
+                 });
+             });
+             custom_uploader.open();
+         });
+     });
+    </script>
+    <?php
+}
+add_action('admin_footer', 'widget_custom_script');
 
 
 /**
@@ -70,13 +107,35 @@ class NukayamaTopWidget extends WP_Widget {
         
         ob_start();
 
+        // =======================================================
+        // ここからの内容はトップページに出力される。
+        // =======================================================
+
 		// var_dump($instance);    // $instance の内容をチェック
 
-		echo $args['before_widget'];
+        echo $args['before_widget'];
+
+        if (! empty($instance['link'])) {
+            $url_before = '<a href="' . $instance['link'] . '">';
+            $url_after = '</a>';
+            
+        } else {
+            $url_before = "";
+            $url_after = "";
+        }
+        
+        if (! empty($instance['image'])) {
+            $image = '<img src="' . $instance['image'] . '" alt="">';
+        }
+        echo $url_before, $image, $url_after;
+        
+        
         echo $args['before_title'];
         $title = (! empty($instance['title'])) ? $instance['title'] : "タイトルやねんけど";
         $title = apply_filters('widget_title', $title, $instance, $this->id_base);
-        echo $title;
+
+        echo $url_before, $title, $url_after;
+
         echo $args['after_title'];
         $body = (! empty($instance['body'])) ? $instance['body'] : "ボディやねんけど";
         $body = apply_filters('widget_body', $body, $instance, $this->id_base);
@@ -90,7 +149,10 @@ class NukayamaTopWidget extends WP_Widget {
             ob_end_flush();
         }
 	}
-	
+
+    // =======================================================
+    // ここからの内容は、ウィジェット画面に出力される。
+    // =======================================================
 	public function form($instance) {
 ?>
     <p>
@@ -107,15 +169,34 @@ class NukayamaTopWidget extends WP_Widget {
                name="<?php echo  $this->get_field_name('body'); ?>"
                ><?php echo esc_attr($instance['body']); ?></textarea>
     </p>
+    <p>
+        <label for="<?php echo $this->get_field_id('link'); ?>">リンクURL</label>
+        <input type="text" class="widefat"
+               id="<?php echo $this->get_field_id('link'); ?>"
+               name="<?php echo $this->get_field_name('link'); ?>"
+               placeholder="http://"
+               value="<?php echo esc_attr($instance['link']); ?>">
+    </p>
+    <p>
+        <label for="<?php echo $this->get_field_id('image'); ?>">イメージ</label>
+        <input type="text" class="widefat widget-image"
+               id="<?php echo $this->get_field_id('image'); ?>"
+               name="<?php echo $this->get_field_name('image'); ?>"
+               value="<?php echo esc_attr($instance['image']); ?>">
+        <div id="img-thumbnail"></div>
+        <button type="button" class="media_btn">画像選択</button>
+    </p>
 <?php
 
 }
 
 function update($new_instance, $old_instance) {
-    // $instance = $old_instance;
-    $instance = array();
+    $instance = $old_instance;
+    // $instance = array();
     $instance['title'] = strip_tags($new_instance['title']);
     $instance['body'] = strip_tags($new_instance['body']);
+    $instance['link'] = $new_instance['link'];
+    $instance['image'] = $new_instance['image'];
 	return $instance;
 }
 } // enc class
